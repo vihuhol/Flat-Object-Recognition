@@ -17,7 +17,6 @@ const char* params =
      "{   | image         |       | image to detect objects on                    }"
      "{   | camera        | false | whether to detect on video stream from camera }";
 
-vector<Mat> samples;
 
 void Descriptor(const Mat image,vector<KeyPoint> keypoints_object)
 {
@@ -43,11 +42,16 @@ void FindFeatureUseSURF(const Mat image)
 }
 
 int main(int argc, const char **argv)
-{   
+{ 
     CommandLineParser parser(argc, argv, params);
     string sampleListFile = parser.get<string>("sample-list");
     std::ifstream sampleListFileReader(sampleListFile);
     char buff[50];
-    sampleListFileReader.getline(buff, 50);
+    while (sampleListFileReader.getline(buff, 50))
+    {
+        string str(buff);
+        string image_file = str.substr(0,str.find(" "));
+
+    }
     return 0;
 }
