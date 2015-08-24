@@ -13,23 +13,11 @@ using namespace cv;
 
 const char* params =
      "{ h | help          | false | print usage                                   }"
-     "{   | sample-list   | false | path to list with image classes names         }"
+     "{   | sample-list   |       | path to list with image classes names         }"
      "{   | image         |       | image to detect objects on                    }"
      "{   | camera        | false | whether to detect on video stream from camera }";
 
 vector<Mat> samples;
-
-void SampleListParser(int argc, const char **argv)
-{
-    CommandLineParser parser(argc, argv, params);
-    string sampleListFile = parser.get<string>("sample-list");
-    std::ifstream sampleListFileReader(sampleListFile);
-    char buff[50];
-    sampleListFileReader >> buff;
-    std::cout << buff;
-}
-
-
 
 void Descriptor(const Mat image,vector<KeyPoint> keypoints_object)
 {
@@ -56,7 +44,10 @@ void FindFeatureUseSURF(const Mat image)
 
 int main(int argc, const char **argv)
 {   
-
-
+    CommandLineParser parser(argc, argv, params);
+    string sampleListFile = parser.get<string>("sample-list");
+    std::ifstream sampleListFileReader(sampleListFile);
+    char buff[50];
+    sampleListFileReader.getline(buff, 50);
     return 0;
 }
