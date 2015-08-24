@@ -18,7 +18,6 @@ const char* params =
      "{   | camera        | false | whether to detect on video stream from camera }";
 
 vector<Mat> samples;
-vector<string> classNames;
 
 void SampleListParser(int argc, const char **argv)
 {
@@ -28,6 +27,19 @@ void SampleListParser(int argc, const char **argv)
     char buff[50];
     sampleListFileReader >> buff;
     std::cout << buff;
+}
+
+
+
+void Descriptor(const Mat image,vector<KeyPoint> keypoints_object)
+{
+	SurfDescriptorExtractor extractor;
+
+	Mat destriptor_object;
+
+	extractor.compute(image, keypoints_object,destriptor_object);
+
+
 }
 
 void FindFeatureUseSURF(const Mat image)
@@ -44,5 +56,7 @@ void FindFeatureUseSURF(const Mat image)
 
 int main(int argc, const char **argv)
 {   
+
+
     return 0;
 }
