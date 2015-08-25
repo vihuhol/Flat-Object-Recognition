@@ -18,112 +18,60 @@ const char* params =
      "{   | image         |       | image to detect objects on                    }"
      "{   | camera        | false | whether to detect on video stream from camera }";
 
-vector<KeyPoint> FindFeatureUseSURF(const Mat image)
-{
-	int minHessian = 400;
-
-	SurfFeatureDetector detector( minHessian );
-
-	vector<KeyPoint> keypoints_object;
-
-	detector.detect( image, keypoints_object );
-
-	return keypoints_object;
-	
-}
 void Descriptor(const Mat image, const Mat test_image)
 {
-
+	const int ransacThreshold = 3;
 	imshow("image",image);
-	std::cout<<"here!"<< std::endl;
-	int minHessian = 400;
 
-	SurfFeatureDetector detector( minHessian );
-
+	SurfFeatureDetector detector;
 	vector<KeyPoint> keypoints_object, keypoint_test;
-
 	detector.detect( image, keypoints_object );
 	detector.detect( test_image, keypoint_test );
 
 	SurfDescriptorExtractor extractor;
-
-	Mat destriptor_object, destriptor_test;
-
-	
+	Mat destriptor_object, destriptor_test;	
 	extractor.compute(image,  keypoints_object ,destriptor_object);
-
 	extractor.compute(test_image, keypoint_test ,destriptor_test);
 
-
-
-	FlannBasedMatcher matcher;
+	BFMatcher matcher( NORM_L2 );
 	vector< DMatch > matches;
 	matcher.match( destriptor_object, destriptor_test,matches );
 
 
-	double max_dist = 0; double min_dist = 100;
-
-            //-- Вычисление максимального и минимального расстояния среди всех дескрипторов
-                       // в пространстве признаков
-	for( int i = 0; i < destriptor_object.rows; i++ )
-	{ 
-		double dist = matches[i].distance;
-		if( dist < min_dist ) min_dist = dist;
-		if( dist > max_dist ) max_dist = dist;
-	}
-
-	printf("-- Max dist : %f \n", max_dist );
-	printf("-- Min dist : %f \n", min_dist );
-
-	//-- Отобрать только хорошие матчи, расстояние меньше чем 3 * min_dist
-	vector< DMatch > good_matches;
-
-	for( int i = 0; i < destriptor_object.rows; i++ )
-	{ 
-		if( matches[i].distance < 3 * min_dist )
-		{ 
-			good_matches.push_back( matches[i]); 
-		}
-	}  
-
-
-	Mat img_matches;
-    
-
-    drawMatches(image,keypoints_object,test_image, keypoint_test, good_matches,img_matches);
-
-
-	//imshow("image",img_matches);
-	//waitKey();
-
-
+	Mat img_matches; 
+    drawMatches(image,keypoints_object,test_image, keypoint_test, matches,img_matches);
+	imshow("Matches before RANSAC",img_matches);
+	waitKey();
 
 	vector<Point2f> obj;
 	vector<Point2f> scene;
-
-	for( int i = 0; i < good_matches.size(); i++ )
+	for( int i = 0; i < matches.size(); i++ )
 	{
-		obj.push_back( keypoints_object[ good_matches[i].queryIdx ].pt );
-		scene.push_back(  keypoint_test [ good_matches[i].trainIdx ].pt ); 
+		obj.push_back( keypoints_object[i].pt );
+		scene.push_back(  keypoint_test[ matches[i].trainIdx ].pt ); 
+	}
+	
+	Mat H = findHomography ( Mat(obj), Mat(scene), CV_RANSAC, ransacThreshold);
+
+	Mat  scene_corners;
+	perspectiveTransform(Mat(obj), scene_corners, H);
+
+	vector< DMatch > inliers;
+	for (int i=0; i<matches.size(); i++)
+	{
+		Point2f p1 = keypoint_test.at( matches[i].trainIdx ).pt;
+		Point2f p2 = scene_corners.at<Point2f>(matches[i].queryIdx);
+		if ((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) < 
+			ransacThreshold * ransacThreshold)
+		{
+			inliers.push_back(matches[i]);
+		}
 	}
 
-	Mat H = findHomography ( obj, scene, CV_RANSAC );
-	std::vector<Point2f> obj_corners(4);
-	obj_corners[0] = cvPoint(0,0); obj_corners[1] = cvPoint( image.cols, 0 );
-	obj_corners[2] = cvPoint( image.cols, image.rows ); obj_corners[3] = cvPoint( 0, image.rows );
-	std::vector<Point2f> scene_corners(4);
+	Mat img_matches_a;
+	drawMatches(image, keypoints_object,test_image, keypoint_test, inliers,img_matches_a);
 
-	//-- Отобразить углы целевого объекта, используя найденное преобразование, на сцену
-	perspectiveTransform( obj_corners, scene_corners, H);
-
-	//-- Соеденить отображенные углы
-	line( img_matches, scene_corners[0] + Point2f( image.cols, 0), scene_corners[1] + Point2f( image.cols, 0), Scalar(0, 255, 0), 4 );
-	line( img_matches, scene_corners[1] + Point2f( image.cols, 0), scene_corners[2] + Point2f( image.cols, 0), Scalar( 0, 255, 0), 4 );
-	line( img_matches, scene_corners[2] + Point2f( image.cols, 0), scene_corners[3] + Point2f( image.cols, 0), Scalar( 0, 255, 0), 4 );
-	line( img_matches, scene_corners[3] + Point2f( image.cols, 0), scene_corners[0] + Point2f( image.cols, 0), Scalar( 0, 255, 0), 4 );
-
-
-	imshow("image",img_matches);
+	imshow("Matches after RANSAC",img_matches_a);
 	waitKey();
 }
 
@@ -153,9 +101,9 @@ int main(int argc, const char **argv)
 
 	//	std::cout<<str<<std::endl;
 
-		image = imread(_path + image_file);
+		image = imread(_path + image_file,0);
 
-		test_image = imread(testImage,1);
+		test_image = imread(testImage,0);
 
 		std::cout<<_path + image_file<<std::endl;
 
