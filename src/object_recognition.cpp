@@ -30,6 +30,14 @@ const char* params =
      "{   | camera        | false | whether to detect on video stream from camera }";
 
 
+void subscribeObject(Mat& image, string name, Point2f leftCornerCoord)
+{    
+    Point2f textCoord(leftCornerCoord.x, leftCornerCoord.y + 5);
+    Scalar Red(0, 0, 255);
+    putText(image, name, textCoord, FONT_HERSHEY_COMPLEX, 1.0, Red, 2);
+}
+
+
 float calculateTriangleArea(Point2f p1, Point2f p2, Point2f p3) {
 	float a = sqrt((p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y));
 	float b = sqrt((p3.x-p2.x)*(p3.x-p2.x) + (p3.y-p2.y)*(p3.y-p2.y));
@@ -46,7 +54,7 @@ float fourPointsArea(Point2f p1, Point2f p2, Point2f p3, Point2f p4) {
 	return tr1+tr2;
 }
 
-void DrawContours(const Mat image, Mat& test_image, const Mat homography, Scalar color ) {
+void DrawContours(const Mat image, Mat& test_image, const Mat homography, Scalar color, string objectName ) {
 	std::vector<Point2f> startcorners, newcorners;
 	std::vector<float> distances;
 	startcorners.push_back(Point2f(0,0));
@@ -65,6 +73,8 @@ void DrawContours(const Mat image, Mat& test_image, const Mat homography, Scalar
 	    line(test_image, Point2f(newcorners[3].x, newcorners[3].y), Point2f(newcorners[0].x, newcorners[0].y), color, 4);
 
 	}
+
+    subscribeObject(test_image, objectName, newcorners[3]);
 	
 }
 
@@ -153,7 +163,7 @@ int main(int argc, const char **argv)
 		matcher = matches(tmp, test);
 		scene = Homography(	matches(tmp, test), tmp, test, 3.0, H);
 		inliers(matcher,scene,test,3.0,inlier);
-		DrawContours(image, test_image, H, Scalar(0,255,0));	
+		DrawContours(image, test_image, H, Scalar(0,255,0), "ololo");	
     }
 
 	TE();
