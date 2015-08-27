@@ -33,7 +33,7 @@ void subscribeObject(Mat& image, string name, Point2f leftCornerCoord)
 {    
     Point2f textCoord(leftCornerCoord.x, leftCornerCoord.y + 25);
     Scalar Red(0, 0, 255);
-    putText(image, name, textCoord, FONT_HERSHEY_COMPLEX, 1.0, Red, 2);
+	putText(image, name, textCoord, FONT_ITALIC, 1, Red, 2,5);
 }
 
 
@@ -154,17 +154,20 @@ int main(int argc, const char **argv)
 
 
 	Mat img;
-
+	string str;
     while (sampleListFileReader.getline(buff, 50))
     {
-        string str(buff);
+        str = (string) buff;
         string image_file = str.substr(0,str.find(" "));
 		image = imread(_path + image_file);
 		compute(image,tmp);
 		//matcher = matches(tmp, test);
 		scene = Homography(	matches(tmp, test), tmp, test, 3.0, H);
 		//inliers(matcher,scene,test,3.0,inlier);
-		DrawContours(image, test_image, H, Scalar(0,255,0), "ololo");	
+
+		str = str.substr(str.find(" "), str.length()-1);
+
+		DrawContours(image, test_image, H, Scalar(0,255,0), str);	
     }
 
 	TE();
