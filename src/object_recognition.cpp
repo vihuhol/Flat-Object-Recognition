@@ -12,7 +12,6 @@
 using namespace cv;
 
 
-
 #if 1
   #define TS(name) int64 t_##name = getTickCount()
   #define TE(name) printf("TIMER_" #name ": %.2fms\n", \
@@ -32,9 +31,15 @@ const char* params =
 
 void subscribeObject(Mat& image, string name, Point2f leftCornerCoord)
 {    
+<<<<<<< HEAD
     Point2f textCoord(leftCornerCoord.x, leftCornerCoord.y + 5);
     Scalar Red(0, 0, 255);
     putText(image, name, textCoord, FONT_HERSHEY_COMPLEX, 1.0, Red, 2);
+=======
+    Point2f textCoord(leftCornerCoord.x, leftCornerCoord.y + 25);
+    Scalar Red(0, 0, 255);
+	putText(image, name, textCoord, FONT_ITALIC, 1, Red, 2,5);
+>>>>>>> upstream/master
 }
 
 
@@ -71,10 +76,16 @@ void DrawContours(const Mat image, Mat& test_image, const Mat homography, Scalar
 	    line(test_image, Point2f(newcorners[1].x, newcorners[1].y), Point2f(newcorners[2].x, newcorners[2].y), color, 4);
 	    line(test_image, Point2f(newcorners[2].x, newcorners[2].y), Point2f(newcorners[3].x, newcorners[3].y), color, 4);
 	    line(test_image, Point2f(newcorners[3].x, newcorners[3].y), Point2f(newcorners[0].x, newcorners[0].y), color, 4);
+		
+		subscribeObject(test_image, objectName, newcorners[0]);
 
 	}
 
+<<<<<<< HEAD
     subscribeObject(test_image, objectName, newcorners[3]);
+=======
+    
+>>>>>>> upstream/master
 	
 }
 
@@ -153,17 +164,25 @@ int main(int argc, const char **argv)
 
 
 	Mat img;
-
+	string str;
     while (sampleListFileReader.getline(buff, 50))
     {
-        string str(buff);
+        str = (string) buff;
         string image_file = str.substr(0,str.find(" "));
 		image = imread(_path + image_file);
 		compute(image,tmp);
-		matcher = matches(tmp, test);
+		//matcher = matches(tmp, test);
 		scene = Homography(	matches(tmp, test), tmp, test, 3.0, H);
+<<<<<<< HEAD
 		inliers(matcher,scene,test,3.0,inlier);
 		DrawContours(image, test_image, H, Scalar(0,255,0), "ololo");	
+=======
+		//inliers(matcher,scene,test,3.0,inlier);
+
+		str = str.substr(str.find(" "), str.length()-1);
+
+		DrawContours(image, test_image, H, Scalar(0,255,0), str);	
+>>>>>>> upstream/master
     }
 
 	TE();
